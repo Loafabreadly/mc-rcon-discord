@@ -77,4 +77,4 @@ Thumbs.db
 # Application specific
 config/
 minecraft-data/
-docker-compose.yml
+docker-compose-secret.yml

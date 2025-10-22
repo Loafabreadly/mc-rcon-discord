@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # Minecraft RCON Discord Bot
+  mc-rcon-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mc-rcon-discord-bot
+    restart: unless-stopped
+    
+    environment:
+      # Discord Configuration
+      - DISCORD_TOKEN=
+      - DISCORD_GUILD_ID=
+      - DISCORD_ALLOWED_ROLES=Minecrafter
+      
+      # Minecraft RCON Configuration
+      - MINECRAFT_RCON_HOST=
+      - MINECRAFT_RCON_PORT=25575
+      - MINECRAFT_RCON_PASSWORD=
+      - MINECRAFT_RCON_TIMEOUT=10
+
+      # Bot Settings
+      - BOT_COOLDOWN_MINUTES=60
+      - BOT_MAX_USERNAME_LENGTH=16
+      - BOT_ENABLE_DUPLICATE_CHECK=true
+
+    volumes:
+      # Mount logs directory for persistence
+      - ./logs:/app/logs
+      # Mount config directory for optional config file
+      #- ./config:/app/config
+
+    
+    # Health check
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep '[j]ava' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      - mc
+  mc:
+    image: itzg/minecraft-server:latest
+    tty: true
+    stdin_open: true
+    ports:
+      - "25565:25565" #Game Port
+      - "25575:25575" #RCON Port
+    environment:
+      EULA: "TRUE"
+      MEMORY: "3072M"
+    volumes:
+      - "./data:/data"            
