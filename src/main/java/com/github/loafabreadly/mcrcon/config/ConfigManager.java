@@ -1,4 +1,4 @@
-package com.example.mcrcon.config;
+package com.github.loafabreadly.mcrcon.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -90,6 +90,8 @@ public class ConfigManager {
         
         // Status pages configuration (initialize empty)
         BotConfig.StatusPagesConfig statusPagesConfig = new BotConfig.StatusPagesConfig();
+        statusPagesConfig.setDefaultChannelId(getEnvVar("STATUS_PAGE_CHANNEL_ID", null));
+        statusPagesConfig.setDefaultMessageId(getEnvVar("STATUS_PAGE_MESSAGE_ID", null));
         config.setStatusPages(statusPagesConfig);
         
         return config;
@@ -131,6 +133,17 @@ public class ConfigManager {
         String password = System.getenv("MINECRAFT_RCON_PASSWORD");
         if (password != null && !password.isEmpty()) {
             config.getMinecraft().setPassword(password);
+        }
+        
+        // Status pages overrides
+        String statusChannelId = System.getenv("STATUS_PAGE_CHANNEL_ID");
+        if (statusChannelId != null && !statusChannelId.isEmpty()) {
+            config.getStatusPages().setDefaultChannelId(statusChannelId);
+        }
+        
+        String statusMessageId = System.getenv("STATUS_PAGE_MESSAGE_ID");
+        if (statusMessageId != null && !statusMessageId.isEmpty()) {
+            config.getStatusPages().setDefaultMessageId(statusMessageId);
         }
     }
     
@@ -200,6 +213,8 @@ public class ConfigManager {
             sampleConfig.setBot(botSettings);
             
             BotConfig.StatusPagesConfig statusPagesConfig = new BotConfig.StatusPagesConfig();
+            statusPagesConfig.setDefaultChannelId("YOUR_STATUS_CHANNEL_ID");
+            statusPagesConfig.setDefaultMessageId("YOUR_STATUS_MESSAGE_ID");
             sampleConfig.setStatusPages(statusPagesConfig);
             
             objectMapper.writerWithDefaultPrettyPrinter()

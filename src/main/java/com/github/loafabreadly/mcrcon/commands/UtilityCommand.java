@@ -1,6 +1,6 @@
-package com.example.mcrcon.commands;
+package com.github.loafabreadly.mcrcon.commands;
 
-import com.example.mcrcon.service.MinecraftRconService;
+import com.github.loafabreadly.mcrcon.service.MinecraftRconService;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -64,6 +64,7 @@ public class UtilityCommand {
                             true)
                     .addField("⚡ Server TPS", String.format("%.1f", serverInfo.getTps()), true)
                     .addField("🎮 Server Load", getLoadDescription(serverInfo.getTps()), true)
+                    .addField("📋 Server Version", serverInfo.getServerVersion(), false)
                     .setTimestamp(Instant.now())
                     .setFooter("Minecraft RCON Bot | Auto-updates every 5 minutes");
             

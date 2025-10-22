@@ -1,12 +1,12 @@
-package com.example.mcrcon;
+package com.github.loafabreadly.mcrcon;
 
-import com.example.mcrcon.config.BotConfig;
-import com.example.mcrcon.config.ConfigManager;
-import com.example.mcrcon.service.MinecraftRconService;
-import com.example.mcrcon.service.StatusPageManager;
-import com.example.mcrcon.commands.WhitelistCommand;
-import com.example.mcrcon.commands.AdminCommand;
-import com.example.mcrcon.commands.UtilityCommand;
+import com.github.loafabreadly.mcrcon.config.BotConfig;
+import com.github.loafabreadly.mcrcon.config.ConfigManager;
+import com.github.loafabreadly.mcrcon.service.MinecraftRconService;
+import com.github.loafabreadly.mcrcon.service.StatusPageManager;
+import com.github.loafabreadly.mcrcon.commands.WhitelistCommand;
+import com.github.loafabreadly.mcrcon.commands.AdminCommand;
+import com.github.loafabreadly.mcrcon.commands.UtilityCommand;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;

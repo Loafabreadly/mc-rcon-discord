@@ -1,8 +1,8 @@
-package com.example.mcrcon.service;
+package com.github.loafabreadly.mcrcon.service;
 
-import com.example.mcrcon.commands.UtilityCommand;
-import com.example.mcrcon.config.BotConfig;
-import com.example.mcrcon.config.ConfigManager;
+import com.github.loafabreadly.mcrcon.commands.UtilityCommand;
+import com.github.loafabreadly.mcrcon.config.BotConfig;
+import com.github.loafabreadly.mcrcon.config.ConfigManager;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -190,14 +190,66 @@ public class StatusPageManager {
      */
     private void loadStatusPagesFromConfig() {
         BotConfig.StatusPagesConfig statusPagesConfig = configManager.getConfig().getStatusPages();
-        if (statusPagesConfig == null || statusPagesConfig.getPages() == null) {
+        if (statusPagesConfig == null) {
             logger.info("No status pages to restore from config");
+            return;
+        }
+        
+        // First, try to restore from environment variables if configured
+        String defaultChannelId = statusPagesConfig.getDefaultChannelId();
+        String defaultMessageId = statusPagesConfig.getDefaultMessageId();
+        
+        if (defaultChannelId != null && !defaultChannelId.isEmpty() && 
+            defaultMessageId != null && !defaultMessageId.isEmpty()) {
+            
+            logger.info("Attempting to restore status page from environment variables: channel={}, message={}", 
+                       defaultChannelId, defaultMessageId);
+            
+            try {
+                TextChannel channel = jda.getTextChannelById(defaultChannelId);
+                if (channel != null) {
+                    // Verify the message still exists
+                    channel.retrieveMessageById(defaultMessageId).queue(
+                        message -> {
+                            StatusPage statusPage = new StatusPage(
+                                defaultChannelId,
+                                defaultMessageId,
+                                channel,
+                                System.currentTimeMillis()
+                            );
+                            activeStatusPages.put(defaultChannelId, statusPage);
+                            logger.info("Successfully restored environment-configured status page in channel {} with message ID {}", 
+                                       defaultChannelId, defaultMessageId);
+                        },
+                        error -> {
+                            logger.warn("Failed to restore environment-configured status page: message may have been deleted. " +
+                                       "Channel: {}, Message: {}", defaultChannelId, defaultMessageId);
+                        }
+                    );
+                } else {
+                    logger.warn("Failed to restore environment-configured status page: channel {} not found", defaultChannelId);
+                }
+            } catch (Exception e) {
+                logger.error("Error restoring environment-configured status page", e);
+            }
+        }
+        
+        // Then restore from saved config pages
+        if (statusPagesConfig.getPages() == null) {
+            logger.info("No saved status pages to restore from config");
             return;
         }
         
         int restored = 0;
         for (BotConfig.StatusPagesConfig.StatusPage configPage : statusPagesConfig.getPages()) {
             try {
+                // Skip if this channel already has a status page from environment variables
+                if (activeStatusPages.containsKey(configPage.getChannelId())) {
+                    logger.debug("Skipping config page restoration for channel {} - already has environment-configured page", 
+                               configPage.getChannelId());
+                    continue;
+                }
+                
                 TextChannel channel = jda.getTextChannelById(configPage.getChannelId());
                 if (channel != null) {
                     // Verify the message still exists
@@ -210,24 +262,24 @@ public class StatusPageManager {
                                 configPage.getLastUpdated()
                             );
                             activeStatusPages.put(configPage.getChannelId(), statusPage);
-                            logger.info("Restored status page in channel {} with message ID {}", 
+                            logger.info("Restored saved status page in channel {} with message ID {}", 
                                        configPage.getChannelId(), configPage.getMessageId());
                         },
                         error -> {
-                            logger.warn("Failed to restore status page in channel {}: message may have been deleted", 
+                            logger.warn("Failed to restore saved status page in channel {}: message may have been deleted", 
                                        configPage.getChannelId());
                         }
                     );
                     restored++;
                 } else {
-                    logger.warn("Failed to restore status page: channel {} not found", configPage.getChannelId());
+                    logger.warn("Failed to restore saved status page: channel {} not found", configPage.getChannelId());
                 }
             } catch (Exception e) {
-                logger.error("Error restoring status page for channel {}", configPage.getChannelId(), e);
+                logger.error("Error restoring saved status page for channel {}", configPage.getChannelId(), e);
             }
         }
         
-        logger.info("Attempted to restore {} status pages from config", restored);
+        logger.info("Attempted to restore {} saved status pages from config", restored);
     }
     
     /**

@@ -1,4 +1,4 @@
-package com.example.mcrcon.rcon;
+package com.github.loafabreadly.mcrcon.rcon;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

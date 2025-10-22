@@ -1,4 +1,4 @@
-package com.example.mcrcon.config;
+package com.github.loafabreadly.mcrcon.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
@@ -73,6 +73,12 @@ public class BotConfig {
     public static class StatusPagesConfig {
         @JsonProperty("pages")
         private StatusPage[] pages = new StatusPage[0];
+        
+        @JsonProperty("default_channel_id")
+        private String defaultChannelId;
+        
+        @JsonProperty("default_message_id")
+        private String defaultMessageId;
         
         @Data
         @NoArgsConstructor

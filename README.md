@@ -9,8 +9,9 @@ A Java 21 Discord bot that integrates with Minecraft servers via RCON to manage 
 - 🔐 **Permission System**: Role-based access control for bot commands
 - ⏱️ **Cooldown System**: Prevents spam with configurable cooldown periods
 - 🛡️ **Input Validation**: Validates Minecraft usernames and prevents duplicate entries
-- 📊 **Server Status**: Check server status, player count, and TPS
-- � **Persistent Status Pages**: Create auto-updating status displays that refresh every 5 minutes
+- 📊 **Server Status**: Check server status, player count, TPS, and server version
+- 📺 **Persistent Status Pages**: Create auto-updating status displays that refresh every 5 minutes
+- 🔧 **Environment-Configured Status Pages**: Pre-configure status pages via environment variables
 - �🐳 **Docker Ready**: Containerized application with docker-compose setup
 - 📝 **Comprehensive Logging**: Structured logging with file rotation
 
@@ -117,6 +118,8 @@ https://discord.com/api/oauth2/authorize?client_id=YOUR_BOT_CLIENT_ID&permission
 | `BOT_COOLDOWN_MINUTES` | ❌ | `60` | Cooldown between whitelist requests |
 | `BOT_MAX_USERNAME_LENGTH` | ❌ | `16` | Maximum Minecraft username length |
 | `BOT_ENABLE_DUPLICATE_CHECK` | ❌ | `true` | Check if player is already whitelisted |
+| `STATUS_PAGE_CHANNEL_ID` | ❌ | - | Pre-configure a status page in this channel |
+| `STATUS_PAGE_MESSAGE_ID` | ❌ | - | Pre-configure status page with this message ID |
 
 ### Configuration File (Alternative)
 
@@ -141,7 +144,11 @@ Instead of environment variables, you can create a `config.json` file:
     "max_username_length": 16,
     "enable_duplicate_check": true
   },
-  "status_pages": []
+  "status_pages": {
+    "default_channel_id": "your_status_channel_id",
+    "default_message_id": "your_status_message_id",
+    "pages": []
+  }
 }
 ```
 
@@ -227,10 +234,11 @@ The bot supports persistent status pages that automatically update every 5 minut
 
 ### Features
 
-- **Real-time Data**: Shows current server metrics including TPS and online players
+- **Real-time Data**: Shows current server metrics including TPS, online players, and server version
 - **Color-coded Status**: Green (excellent), Yellow (moderate), Red (poor performance)
 - **Automatic Updates**: Refreshes every 5 minutes without user intervention
 - **Persistent Storage**: Status pages survive bot restarts and are automatically restored
+- **Environment Configuration**: Pre-configure status pages using `STATUS_PAGE_CHANNEL_ID` and `STATUS_PAGE_MESSAGE_ID` environment variables
 - **Error Handling**: Automatically removes status pages if messages are deleted
 - **Channel Management**: Only one status page per channel to prevent spam
 

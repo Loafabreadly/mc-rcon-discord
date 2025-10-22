@@ -1,7 +1,7 @@
-package com.example.mcrcon.service;
+package com.github.loafabreadly.mcrcon.service;
 
-import com.example.mcrcon.config.BotConfig;
-import com.example.mcrcon.rcon.RconClient;
+import com.github.loafabreadly.mcrcon.config.BotConfig;
+import com.github.loafabreadly.mcrcon.rcon.RconClient;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.slf4j.Logger;
@@ -128,7 +128,8 @@ public class MinecraftRconService {
             try (RconClient client = createRconClient()) {
                 String listResponse = client.sendCommand("list");
                 String tpsResponse = client.sendCommand("tps");
-                return parseServerInfoResponse(listResponse, tpsResponse);
+                String versionResponse = client.sendCommand("version");
+                return parseServerInfoResponse(listResponse, tpsResponse, versionResponse);
             } catch (Exception e) {
                 logger.error("Failed to get server info", e);
                 throw new RconException("Failed to retrieve server info: " + e.getMessage(), e);
@@ -209,7 +210,7 @@ public class MinecraftRconService {
     /**
      * Parse server info response
      */
-    private ServerInfo parseServerInfoResponse(String listResponse, String tpsResponse) {
+    private ServerInfo parseServerInfoResponse(String listResponse, String tpsResponse, String versionResponse) {
         // Parse player count and list from "list" command
         Pattern listPattern = Pattern.compile("There are (\\d+) of a max of (\\d+) players online:?(.*)");
         Matcher listMatcher = listPattern.matcher(listResponse);
@@ -237,7 +238,34 @@ public class MinecraftRconService {
             }
         }
         
-        return new ServerInfo(onlinePlayers, maxPlayers, playerList, tps);
+        // Parse server version
+        String serverVersion = "Unknown";
+        if (versionResponse != null && !versionResponse.contains("Unknown command")) {
+            // Try different version response patterns
+            Pattern versionPattern1 = Pattern.compile("This server is running (.+?) version (.+?) \\(");
+            Pattern versionPattern2 = Pattern.compile("(.+?) version (.+?)");
+            Pattern versionPattern3 = Pattern.compile("(\\S+)\\s+version\\s+(\\S+)");
+            
+            Matcher matcher1 = versionPattern1.matcher(versionResponse);
+            Matcher matcher2 = versionPattern2.matcher(versionResponse);
+            Matcher matcher3 = versionPattern3.matcher(versionResponse);
+            
+            if (matcher1.find()) {
+                serverVersion = matcher1.group(1) + " " + matcher1.group(2);
+            } else if (matcher2.find()) {
+                serverVersion = matcher2.group(1) + " " + matcher2.group(2);
+            } else if (matcher3.find()) {
+                serverVersion = matcher3.group(1) + " " + matcher3.group(2);
+            } else {
+                // Fallback to first part of response if patterns don't match
+                String[] parts = versionResponse.split("\\s+");
+                if (parts.length >= 2) {
+                    serverVersion = parts[0] + " " + parts[1];
+                }
+            }
+        }
+        
+        return new ServerInfo(onlinePlayers, maxPlayers, playerList, tps, serverVersion);
     }
     
     /**
@@ -270,6 +298,7 @@ public class MinecraftRconService {
         private final int maxPlayers;
         private final String[] playerList;
         private final double tps;
+        private final String serverVersion;
     }
     
     /**

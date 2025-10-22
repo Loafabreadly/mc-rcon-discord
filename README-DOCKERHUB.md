@@ -10,8 +10,8 @@ A comprehensive Discord bot for managing Minecraft servers via RCON, built with 
 
 ### **Core Functionality**
 - **Whitelist Management**: Players can request to be added to the server whitelist via Discord commands
-- **Persistent Status Pages**: Auto-updating status displays that survive bot restarts
-- **Server Monitoring**: Real-time server status, player count, and performance metrics
+- **Persistent Status Pages**: Auto-updating status displays that survive bot restarts with environment configuration
+- **Server Monitoring**: Real-time server status, player count, performance metrics, and server version
 - **Admin Controls**: Complete server administration through Discord with separate admin roles
 - **Permission System**: Role-based access control for sensitive commands
 - **Smart Validation**: Username validation and duplicate checking
@@ -68,6 +68,10 @@ services:
       - BOT_COOLDOWN_MINUTES=60
       - BOT_MAX_USERNAME_LENGTH=16
       - BOT_ENABLE_DUPLICATE_CHECK=true
+      
+      # Status Page Configuration (Optional)
+      - STATUS_PAGE_CHANNEL_ID=
+      - STATUS_PAGE_MESSAGE_ID=
 
     volumes:
       # Mount logs directory for persistence
@@ -134,6 +138,8 @@ docker run -d \
 | `BOT_COOLDOWN_MINUTES` | ❌ | `60` | Cooldown between whitelist requests |
 | `BOT_MAX_USERNAME_LENGTH` | ❌ | `16` | Maximum Minecraft username length |
 | `BOT_ENABLE_DUPLICATE_CHECK` | ❌ | `true` | Check for existing whitelist entries |
+| `STATUS_PAGE_CHANNEL_ID` | ❌ | - | Pre-configure a status page in this channel |
+| `STATUS_PAGE_MESSAGE_ID` | ❌ | - | Pre-configure status page with this message ID |
 
 ### Alternative: JSON Configuration
 
@@ -186,7 +192,8 @@ enforce-whitelist=true
 - **Create**: `/status-page create` - Creates a status message that updates every 5 minutes
 - **Remove**: `/status-page remove` - Removes the status page from current channel
 - **Persistent**: Status pages automatically restore after bot restarts
-- **Real-time**: Shows server status, TPS, player count, and online players
+- **Environment Configuration**: Use `STATUS_PAGE_CHANNEL_ID` and `STATUS_PAGE_MESSAGE_ID` to pre-configure status pages
+- **Real-time**: Shows server status, TPS, player count, server version, and online players
 - **Smart**: One status page per channel, automatic cleanup if messages are deleted
 
 Perfect for server information channels where you want live server data without chat spam.
