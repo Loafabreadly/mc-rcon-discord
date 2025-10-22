@@ -1,4 +1,4 @@
-package com.example.mcrcon.config;
+package com.github.loafabreadly.mcrcon.config;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -1,7 +1,7 @@
-package com.example.mcrcon.commands;
+package com.github.loafabreadly.mcrcon.commands;
 
-import com.example.mcrcon.config.BotConfig;
-import com.example.mcrcon.service.MinecraftRconService;
+import com.github.loafabreadly.mcrcon.config.BotConfig;
+import com.github.loafabreadly.mcrcon.service.MinecraftRconService;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;

@@ -26,6 +26,10 @@ services:
       - BOT_COOLDOWN_MINUTES=60
       - BOT_MAX_USERNAME_LENGTH=16
       - BOT_ENABLE_DUPLICATE_CHECK=true
+      
+      # Status Page Configuration (Optional)
+      - STATUS_PAGE_CHANNEL_ID=
+      - STATUS_PAGE_MESSAGE_ID=
 
     volumes:
       # Mount logs directory for persistence
