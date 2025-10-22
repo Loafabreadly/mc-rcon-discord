@@ -10,8 +10,9 @@ A comprehensive Discord bot for managing Minecraft servers via RCON, built with 
 
 ### **Core Functionality**
 - **Whitelist Management**: Players can request to be added to the server whitelist via Discord commands
+- **Persistent Status Pages**: Auto-updating status displays that survive bot restarts
 - **Server Monitoring**: Real-time server status, player count, and performance metrics
-- **Admin Controls**: Complete server administration through Discord
+- **Admin Controls**: Complete server administration through Discord with separate admin roles
 - **Permission System**: Role-based access control for sensitive commands
 - **Smart Validation**: Username validation and duplicate checking
 
@@ -24,11 +25,14 @@ A comprehensive Discord bot for managing Minecraft servers via RCON, built with 
 - `/help` - Show command help
 - `/ping` - Test bot responsiveness
 
-#### **Admin Commands** (Require configured roles)
+#### **Status Page Commands** (Require configured roles)
+- `/status-page create` - Create persistent status page that updates every 5 minutes
+- `/status-page remove` - Remove status page from current channel
+
+#### **Admin Commands** (Require `DISCORD_ADMIN_ROLE` or fallback to allowed roles)
 - `/admin whitelist-info` - View complete whitelist
 - `/admin whitelist-remove <username>` - Remove player from whitelist
 - `/admin console <command>` - Execute server console commands
-- `/admin performance` - Detailed server performance metrics
 
 ## 🚀 Quick Start
 
@@ -52,6 +56,7 @@ services:
       - DISCORD_TOKEN=
       - DISCORD_GUILD_ID=
       - DISCORD_ALLOWED_ROLES=Minecrafter
+      - DISCORD_ADMIN_ROLE=Admin
       
       # Minecraft RCON Configuration
       - MINECRAFT_RCON_HOST=
@@ -120,7 +125,8 @@ docker run -d \
 |----------|----------|---------|-------------|
 | `DISCORD_TOKEN` | ✅ | - | Discord bot token |
 | `DISCORD_GUILD_ID` | ❌ | - | Discord server ID (for faster command updates) |
-| `DISCORD_ALLOWED_ROLES` | ❌ | - | Comma-separated list of roles for admin commands |
+| `DISCORD_ALLOWED_ROLES` | ❌ | - | Comma-separated list of roles for basic commands |
+| `DISCORD_ADMIN_ROLE` | ❌ | - | Specific role for admin commands (takes precedence) |
 | `MINECRAFT_RCON_HOST` | ❌ | `localhost` | Minecraft server hostname |
 | `MINECRAFT_RCON_PORT` | ❌ | `25575` | RCON port |
 | `MINECRAFT_RCON_PASSWORD` | ✅ | - | RCON password |
@@ -173,7 +179,19 @@ enforce-whitelist=true
 
 ### Restart your Minecraft server for changes to take effect.
 
-## 🐳 Docker Tags
+## � Persistent Status Pages
+
+**New in v1.0**: Create auto-updating status displays that survive bot restarts!
+
+- **Create**: `/status-page create` - Creates a status message that updates every 5 minutes
+- **Remove**: `/status-page remove` - Removes the status page from current channel
+- **Persistent**: Status pages automatically restore after bot restarts
+- **Real-time**: Shows server status, TPS, player count, and online players
+- **Smart**: One status page per channel, automatic cleanup if messages are deleted
+
+Perfect for server information channels where you want live server data without chat spam.
+
+## �🐳 Docker Tags
 
 - `latest` - Latest stable release
 - `v1.x.x` - Specific version tags
