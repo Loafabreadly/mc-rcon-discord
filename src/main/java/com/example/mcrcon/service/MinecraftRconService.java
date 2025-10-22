@@ -22,7 +22,7 @@ public class MinecraftRconService {
     private static final Logger logger = LoggerFactory.getLogger(MinecraftRconService.class);
     
     // Regex patterns for parsing RCON responses
-    private static final Pattern WHITELIST_LIST_PATTERN = Pattern.compile("There are (\\d+) whitelisted players?: (.*)");
+    private static final Pattern WHITELIST_LIST_PATTERN = Pattern.compile("There are (\\d+) whitelisted players?(?:\\(s\\))?: (.*)");
     private static final Pattern PLAYER_EXISTS_PATTERN = Pattern.compile("Player .+ is already whitelisted");
     private static final Pattern PLAYER_ADDED_PATTERN = Pattern.compile("Added .+ to the whitelist");
     private static final Pattern PLAYER_NOT_FOUND_PATTERN = Pattern.compile("Player .+ does not exist");
@@ -162,7 +162,11 @@ public class MinecraftRconService {
             
             String[] players = new String[0];
             if (count > 0 && !playersStr.trim().isEmpty()) {
-                players = playersStr.split(", ");
+                // Split by comma and filter out empty/whitespace-only entries
+                players = Arrays.stream(playersStr.split(", "))
+                        .map(String::trim)
+                        .filter(player -> !player.isEmpty())
+                        .toArray(String[]::new);
             }
             
             return new WhitelistInfo(count, players);
