@@ -105,6 +105,22 @@ public class MinecraftRconService {
     }
     
     /**
+     * Execute a generic RCON command
+     */
+    public CompletableFuture<String> executeCommand(String command) {
+        return CompletableFuture.supplyAsync(() -> {
+            try (RconClient client = createRconClient()) {
+                String response = client.sendCommand(command);
+                logger.debug("Executed command '{}' with response: {}", command, response);
+                return response;
+            } catch (Exception e) {
+                logger.error("Failed to execute command '{}'", command, e);
+                throw new RconException("Failed to execute command: " + e.getMessage(), e);
+            }
+        });
+    }
+    
+    /**
      * Get server player list
      */
     public CompletableFuture<ServerInfo> getServerInfo() {
@@ -116,6 +132,24 @@ public class MinecraftRconService {
             } catch (Exception e) {
                 logger.error("Failed to get server info", e);
                 throw new RconException("Failed to retrieve server info: " + e.getMessage(), e);
+            }
+        });
+    }
+    
+    /**
+     * Get comprehensive server performance information
+     */
+    public CompletableFuture<PerformanceInfo> getPerformanceInfo() {
+        return CompletableFuture.supplyAsync(() -> {
+            try (RconClient client = createRconClient()) {
+                String listResponse = client.sendCommand("list");
+                String tpsResponse = client.sendCommand("tps");
+                String gcResponse = client.sendCommand("gc");
+                
+                return parsePerformanceInfoResponse(listResponse, tpsResponse, gcResponse);
+            } catch (Exception e) {
+                logger.error("Failed to get performance info", e);
+                throw new RconException("Failed to retrieve performance info: " + e.getMessage(), e);
             }
         });
     }
@@ -221,6 +255,65 @@ public class MinecraftRconService {
     }
     
     /**
+     * Parse performance info response
+     */
+    private PerformanceInfo parsePerformanceInfoResponse(String listResponse, String tpsResponse, String gcResponse) {
+        // Parse player count and list from "list" command (same as server info)
+        Pattern listPattern = Pattern.compile("There are (\\d+) of a max of (\\d+) players online:?(.*)");
+        Matcher listMatcher = listPattern.matcher(listResponse);
+        
+        int onlinePlayers = 0;
+        int maxPlayers = 0;
+        String[] playerList = new String[0];
+        
+        if (listMatcher.find()) {
+            onlinePlayers = Integer.parseInt(listMatcher.group(1));
+            maxPlayers = Integer.parseInt(listMatcher.group(2));
+            String playersStr = listMatcher.group(3).trim();
+            if (!playersStr.isEmpty()) {
+                playerList = playersStr.split(", ");
+            }
+        }
+        
+        // Parse TPS and determine if command is available
+        double tps = 20.0; // Default TPS
+        String tpsDetails = "TPS information not available";
+        boolean tpsCommandAvailable = false;
+        
+        if (tpsResponse != null && !tpsResponse.contains("Unknown command")) {
+            tpsCommandAvailable = true;
+            tpsDetails = tpsResponse.trim();
+            
+            // Try to extract numeric TPS value
+            Pattern tpsPattern = Pattern.compile("TPS: ([0-9.]+)");
+            Matcher tpsMatcher = tpsPattern.matcher(tpsResponse);
+            if (tpsMatcher.find()) {
+                tps = Double.parseDouble(tpsMatcher.group(1));
+            } else {
+                // Alternative patterns for different server types
+                Pattern msptPattern = Pattern.compile("Mean tick time: ([0-9.]+) ms");
+                Matcher msptMatcher = msptPattern.matcher(tpsResponse);
+                if (msptMatcher.find()) {
+                    double meanTickTime = Double.parseDouble(msptMatcher.group(1));
+                    tps = Math.min(20.0, 1000.0 / meanTickTime);
+                }
+            }
+        }
+        
+        // Parse memory/GC info and determine if command is available
+        String memoryInfo = "Memory information not available";
+        boolean gcCommandAvailable = false;
+        
+        if (gcResponse != null && !gcResponse.contains("Unknown command")) {
+            gcCommandAvailable = true;
+            memoryInfo = gcResponse.trim();
+        }
+        
+        return new PerformanceInfo(onlinePlayers, maxPlayers, playerList, tps, 
+                                 tpsDetails, memoryInfo, tpsCommandAvailable, gcCommandAvailable);
+    }
+    
+    /**
      * Whitelist information data class
      */
     @Data
@@ -250,6 +343,22 @@ public class MinecraftRconService {
         private final int maxPlayers;
         private final String[] playerList;
         private final double tps;
+    }
+    
+    /**
+     * Performance information data class
+     */
+    @Data
+    @AllArgsConstructor
+    public static class PerformanceInfo {
+        private final int onlinePlayers;
+        private final int maxPlayers;
+        private final String[] playerList;
+        private final double tps;
+        private final String tpsDetails;
+        private final String memoryInfo;
+        private final boolean tpsCommandAvailable;
+        private final boolean gcCommandAvailable;
     }
     
     /**

@@ -1,0 +1,257 @@
+# Minecraft RCON Discord Bot
+
+![Docker Pulls](https://img.shields.io/docker/pulls/yourusername/minecraft-rcon-discord-bot)
+![Docker Image Size](https://img.shields.io/docker/image-size/yourusername/minecraft-rcon-discord-bot/latest)
+![GitHub License](https://img.shields.io/github/license/yourusername/minecraft-rcon-discord-bot)
+
+A comprehensive Discord bot for managing Minecraft servers via RCON, built with Java 21 and designed for Docker deployment.
+
+## 🎮 Features
+
+### **Core Functionality**
+- **Whitelist Management**: Players can request to be added to the server whitelist via Discord commands
+- **Server Monitoring**: Real-time server status, player count, and performance metrics
+- **Admin Controls**: Complete server administration through Discord
+- **Permission System**: Role-based access control for sensitive commands
+- **Smart Validation**: Username validation and duplicate checking
+
+### **Discord Commands**
+
+#### **User Commands**
+- `/whitelist <username>` - Request whitelist access
+- `/server-status` - Check server status and performance
+- `/players` - View online players list
+- `/help` - Show command help
+- `/ping` - Test bot responsiveness
+
+#### **Admin Commands** (Require configured roles)
+- `/admin whitelist-info` - View complete whitelist
+- `/admin whitelist-remove <username>` - Remove player from whitelist
+- `/admin console <command>` - Execute server console commands
+- `/admin performance` - Detailed server performance metrics
+
+## 🚀 Quick Start
+
+### Using Docker Compose (Recommended)
+
+1. **Create docker-compose.yml:**
+```yaml
+version: '3.8'
+services:
+  mc-rcon-bot:
+    image: yourusername/minecraft-rcon-discord-bot:latest
+    restart: unless-stopped
+    environment:
+      # Discord Configuration
+      - DISCORD_TOKEN=your_discord_bot_token
+      - DISCORD_GUILD_ID=your_discord_server_id  # Optional
+      - DISCORD_ALLOWED_ROLES=Admin,Moderator    # Optional
+      
+      # Minecraft RCON Configuration
+      - MINECRAFT_RCON_HOST=your_minecraft_server
+      - MINECRAFT_RCON_PORT=25575
+      - MINECRAFT_RCON_PASSWORD=your_rcon_password
+      
+    volumes:
+      - ./logs:/app/logs  # Optional: persist logs
+```
+
+2. **Start the bot:**
+```bash
+docker-compose up -d
+```
+
+### Using Docker Run
+
+```bash
+docker run -d \
+  --name mc-rcon-bot \
+  --restart unless-stopped \
+  -e DISCORD_TOKEN=your_token \
+  -e MINECRAFT_RCON_HOST=your_server \
+  -e MINECRAFT_RCON_PASSWORD=your_password \
+  -v ./logs:/app/logs \
+  yourusername/minecraft-rcon-discord-bot:latest
+```
+
+## ⚙️ Configuration
+
+### Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `DISCORD_TOKEN` | ✅ | - | Discord bot token |
+| `DISCORD_GUILD_ID` | ❌ | - | Discord server ID (for faster command updates) |
+| `DISCORD_ALLOWED_ROLES` | ❌ | - | Comma-separated list of roles for admin commands |
+| `MINECRAFT_RCON_HOST` | ❌ | `localhost` | Minecraft server hostname |
+| `MINECRAFT_RCON_PORT` | ❌ | `25575` | RCON port |
+| `MINECRAFT_RCON_PASSWORD` | ✅ | - | RCON password |
+| `MINECRAFT_RCON_TIMEOUT` | ❌ | `10` | RCON connection timeout (seconds) |
+| `BOT_COOLDOWN_MINUTES` | ❌ | `60` | Cooldown between whitelist requests |
+| `BOT_MAX_USERNAME_LENGTH` | ❌ | `16` | Maximum Minecraft username length |
+| `BOT_ENABLE_DUPLICATE_CHECK` | ❌ | `true` | Check for existing whitelist entries |
+
+### Alternative: JSON Configuration
+
+Create a `config.json` file and mount it to `/app/config.json`:
+
+```json
+{
+  "discord": {
+    "token": "your_discord_bot_token",
+    "guild_id": "your_guild_id",
+    "allowed_roles": ["Admin", "Moderator"]
+  },
+  "minecraft": {
+    "host": "minecraft-server",
+    "port": 25575,
+    "password": "your_rcon_password",
+    "timeout_seconds": 10
+  },
+  "bot": {
+    "whitelist_cooldown_minutes": 60,
+    "max_username_length": 16,
+    "enable_duplicate_check": true
+  }
+}
+```
+
+## 🔧 Minecraft Server Setup
+
+### Enable RCON
+
+Add to your `server.properties`:
+```properties
+enable-rcon=true
+rcon.port=25575
+rcon.password=your_secure_password_here
+```
+
+### Enable Whitelist
+```properties
+white-list=true
+enforce-whitelist=true
+```
+
+### Restart your Minecraft server for changes to take effect.
+
+## 🐳 Docker Tags
+
+- `latest` - Latest stable release
+- `v1.x.x` - Specific version tags
+- `main` - Latest development build
+
+## 📊 Health Monitoring
+
+The container includes health checks and structured logging:
+
+```bash
+# Check container health
+docker ps
+
+# View logs
+docker logs mc-rcon-bot
+
+# View log files (if volume mounted)
+tail -f logs/mc-rcon-bot.log
+```
+
+## 🔒 Security
+
+- **Non-root container**: Runs as dedicated user for security
+- **Command filtering**: Dangerous console commands are blocked
+- **Role-based access**: Admin commands require Discord role permissions
+- **Input validation**: All user inputs are validated and sanitized
+- **Secure defaults**: Minimal permissions and secure configuration
+
+## 🏗️ Advanced Deployment
+
+### With Existing Minecraft Server Stack
+
+```yaml
+version: '3.8'
+services:
+  minecraft:
+    image: itzg/minecraft-server:java21
+    # ... your existing minecraft config
+    
+  mc-rcon-bot:
+    image: yourusername/minecraft-rcon-discord-bot:latest
+    depends_on:
+      - minecraft
+    environment:
+      - MINECRAFT_RCON_HOST=minecraft
+      # ... other config
+    networks:
+      - minecraft-network
+
+networks:
+  minecraft-network:
+```
+
+### Kubernetes Deployment
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mc-rcon-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mc-rcon-bot
+  template:
+    metadata:
+      labels:
+        app: mc-rcon-bot
+    spec:
+      containers:
+      - name: bot
+        image: yourusername/minecraft-rcon-discord-bot:latest
+        env:
+        - name: DISCORD_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: discord-secret
+              key: token
+        # ... other env vars
+```
+
+## 🛠️ Development
+
+### Building from Source
+
+```bash
+git clone https://github.com/yourusername/minecraft-rcon-discord-bot.git
+cd minecraft-rcon-discord-bot
+./build.sh
+```
+
+### Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🤝 Support
+
+- **Issues**: [GitHub Issues](https://github.com/yourusername/minecraft-rcon-discord-bot/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/minecraft-rcon-discord-bot/discussions)
+- **Documentation**: [Wiki](https://github.com/yourusername/minecraft-rcon-discord-bot/wiki)
+
+## 🌟 Acknowledgments
+
+- Built with [JDA (Java Discord API)](https://github.com/DV8FromTheWorld/JDA)
+- Inspired by the Minecraft server administration community
+- Thanks to all contributors and users
+
+---
+
+**Ready to enhance your Minecraft server management? Deploy the bot today!**

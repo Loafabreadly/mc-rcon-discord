@@ -10,14 +10,28 @@ A Java 21 Discord bot that integrates with Minecraft servers via RCON to manage 
 - ⏱️ **Cooldown System**: Prevents spam with configurable cooldown periods
 - 🛡️ **Input Validation**: Validates Minecraft usernames and prevents duplicate entries
 - 📊 **Server Status**: Check server status, player count, and TPS
-- 🐳 **Docker Ready**: Containerized application with docker-compose setup
+- � **Persistent Status Pages**: Create auto-updating status displays that refresh every 5 minutes
+- �🐳 **Docker Ready**: Containerized application with docker-compose setup
 - 📝 **Comprehensive Logging**: Structured logging with file rotation
 
 ## Commands
 
+### **User Commands**
 - `/whitelist <username>` - Request to add a Minecraft username to the server whitelist
-- `/server-status` - Display current server status and online players
-- `/ping` - Test bot responsiveness
+- `/server-status` - Display current server status, player count, and performance metrics
+- `/players` - View detailed list of online players
+- `/help` - Show comprehensive help information about all commands
+- `/ping` - Test bot responsiveness and latency
+
+### **Status Page Commands**
+- `/status-page create` - Create a persistent status page that updates every 5 minutes
+- `/status-page remove` - Remove the persistent status page from the current channel
+
+### **Admin Commands** (Require configured Discord roles)
+- `/admin whitelist-info` - View complete server whitelist with all players
+- `/admin whitelist-remove <username>` - Remove a specific player from the whitelist
+- `/admin console <command>` - Execute server console commands safely
+- `/admin performance` - View detailed server performance metrics and diagnostics
 
 ## Prerequisites
 
@@ -185,6 +199,35 @@ src/
 └── main/resources/
     └── logback.xml                     # Logging configuration
 ```
+
+## Status Page Feature
+
+The bot supports persistent status pages that automatically update every 5 minutes. These are perfect for server information channels where you want live server data without flooding the chat.
+
+### Usage
+
+1. **Create a Status Page:**
+   ```
+   /status-page create
+   ```
+   - Creates a persistent status message in the current channel
+   - Updates automatically every 5 minutes
+   - Shows server status, player count, TPS, and online players
+
+2. **Remove a Status Page:**
+   ```
+   /status-page remove
+   ```
+   - Removes the auto-updating status page from the current channel
+   - One status page is allowed per channel
+
+### Features
+
+- **Real-time Data**: Shows current server metrics including TPS and online players
+- **Color-coded Status**: Green (excellent), Yellow (moderate), Red (poor performance)
+- **Automatic Updates**: Refreshes every 5 minutes without user intervention
+- **Error Handling**: Automatically removes status pages if messages are deleted
+- **Channel Management**: Only one status page per channel to prevent spam
 
 ## Troubleshooting
 

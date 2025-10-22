@@ -93,14 +93,12 @@ public class RconClient implements AutoCloseable {
      */
     private void authenticate(String password) throws IOException {
         int requestId = random.nextInt(Integer.MAX_VALUE);
-        System.out.println("DEBUG: Sending auth packet with ID: " + requestId);
         
         // Send auth packet
         sendPacket(requestId, SERVERDATA_AUTH, password);
         
         // Read auth response
         RconPacket response = readPacket();
-        System.out.println("DEBUG: Received auth response - ID: " + response.getId() + ", Type: " + response.getType() + ", Body: '" + response.getBody() + "'");
         
         // Check for authentication failure
         // Some servers return -1 for auth failure, others return a different ID
@@ -116,21 +114,16 @@ public class RconClient implements AutoCloseable {
         // For successful auth, the ID should match (but some servers may vary)
         if (response.getId() != requestId) {
             // Some servers return different IDs, but if we got here and it's not -1, it might be OK
-            // Let's be more lenient and just log a warning
-            System.err.println("Warning: Auth response ID mismatch. Expected: " + requestId + ", Got: " + response.getId());
+            // Continue with authentication - this is common with some server implementations
         }
-        
-        System.out.println("DEBUG: Authentication successful!");
         
         // Some servers send an empty packet after auth - try to consume it
         try {
             socket.setSoTimeout(1000); // Short timeout for this read
-            RconPacket extraPacket = readPacket();
-            System.out.println("DEBUG: Consumed extra packet - ID: " + extraPacket.getId() + ", Type: " + extraPacket.getType());
+            readPacket(); // Consume any additional packet
             // If we get here, there was an additional packet - this is normal for some servers
         } catch (Exception ignored) {
             // Timeout or other error reading additional packet - this is fine
-            System.out.println("DEBUG: No extra packet to consume (normal)");
         } finally {
             // Restore original timeout
             socket.setSoTimeout(timeoutMs);
