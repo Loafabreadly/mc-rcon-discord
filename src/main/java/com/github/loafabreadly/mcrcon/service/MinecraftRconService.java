@@ -241,26 +241,35 @@ public class MinecraftRconService {
         // Parse server version
         String serverVersion = "Unknown";
         if (versionResponse != null && !versionResponse.contains("Unknown command")) {
-            // Try different version response patterns
-            Pattern versionPattern1 = Pattern.compile("This server is running (.+?) version (.+?) \\(");
-            Pattern versionPattern2 = Pattern.compile("(.+?) version (.+?)");
-            Pattern versionPattern3 = Pattern.compile("(\\S+)\\s+version\\s+(\\S+)");
-            
-            Matcher matcher1 = versionPattern1.matcher(versionResponse);
-            Matcher matcher2 = versionPattern2.matcher(versionResponse);
-            Matcher matcher3 = versionPattern3.matcher(versionResponse);
-            
-            if (matcher1.find()) {
-                serverVersion = matcher1.group(1) + " " + matcher1.group(2);
-            } else if (matcher2.find()) {
-                serverVersion = matcher2.group(1) + " " + matcher2.group(2);
-            } else if (matcher3.find()) {
-                serverVersion = matcher3.group(1) + " " + matcher3.group(2);
+            // Check if response is in key-value format (like "name = 1.21.10")
+            if (versionResponse.contains(" = ") && versionResponse.contains("name")) {
+                Pattern keyValuePattern = Pattern.compile("name\\s*=\\s*([^\\n\\r]+)");
+                Matcher keyValueMatcher = keyValuePattern.matcher(versionResponse);
+                if (keyValueMatcher.find()) {
+                    serverVersion = "Minecraft " + keyValueMatcher.group(1).trim();
+                }
             } else {
-                // Fallback to first part of response if patterns don't match
-                String[] parts = versionResponse.split("\\s+");
-                if (parts.length >= 2) {
-                    serverVersion = parts[0] + " " + parts[1];
+                // Try traditional version response patterns
+                Pattern versionPattern1 = Pattern.compile("This server is running (.+?) version (.+?) \\(");
+                Pattern versionPattern2 = Pattern.compile("(.+?) version (.+?)");
+                Pattern versionPattern3 = Pattern.compile("(\\S+)\\s+version\\s+(\\S+)");
+                
+                Matcher matcher1 = versionPattern1.matcher(versionResponse);
+                Matcher matcher2 = versionPattern2.matcher(versionResponse);
+                Matcher matcher3 = versionPattern3.matcher(versionResponse);
+                
+                if (matcher1.find()) {
+                    serverVersion = matcher1.group(1) + " " + matcher1.group(2);
+                } else if (matcher2.find()) {
+                    serverVersion = matcher2.group(1) + " " + matcher2.group(2);
+                } else if (matcher3.find()) {
+                    serverVersion = matcher3.group(1) + " " + matcher3.group(2);
+                } else {
+                    // Fallback to first part of response if patterns don't match
+                    String[] parts = versionResponse.split("\\s+");
+                    if (parts.length >= 2) {
+                        serverVersion = parts[0] + " " + parts[1];
+                    }
                 }
             }
         }
