@@ -1,14 +1,19 @@
 package com.example.mcrcon.service;
 
 import com.example.mcrcon.commands.UtilityCommand;
+import com.example.mcrcon.config.BotConfig;
+import com.example.mcrcon.config.ConfigManager;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -22,13 +27,20 @@ public class StatusPageManager {
     
     private final UtilityCommand utilityCommand;
     private final ScheduledExecutorService scheduler;
+    private final ConfigManager configManager;
+    private final JDA jda;
     
     // Store active status pages: channelId -> StatusPage
     private final ConcurrentHashMap<String, StatusPage> activeStatusPages = new ConcurrentHashMap<>();
     
-    public StatusPageManager(UtilityCommand utilityCommand, ScheduledExecutorService scheduler) {
+    public StatusPageManager(UtilityCommand utilityCommand, ScheduledExecutorService scheduler, ConfigManager configManager, JDA jda) {
         this.utilityCommand = utilityCommand;
         this.scheduler = scheduler;
+        this.configManager = configManager;
+        this.jda = jda;
+        
+        // Load existing status pages from config
+        loadStatusPagesFromConfig();
         
         // Start the periodic update task
         startPeriodicUpdates();
@@ -69,6 +81,7 @@ public class StatusPageManager {
                 );
                 
                 activeStatusPages.put(channelId, statusPage);
+                saveStatusPagesToConfig();
                 logger.info("Created status page in channel {} with message ID {}", channelId, message.getId());
             }, error -> {
                 logger.error("Failed to send status page message", error);
@@ -85,6 +98,7 @@ public class StatusPageManager {
         StatusPage removed = activeStatusPages.remove(channelId);
         
         if (removed != null) {
+            saveStatusPagesToConfig();
             event.reply("✅ Status page removed from this channel.").setEphemeral(true).queue();
             logger.info("Removed status page from channel {}", channelId);
         } else {
@@ -145,6 +159,7 @@ public class StatusPageManager {
                             // If the message no longer exists, remove this status page
                             if (error.getMessage().contains("Unknown Message")) {
                                 activeStatusPages.remove(statusPage.getChannelId());
+                                saveStatusPagesToConfig();
                                 logger.info("Removed stale status page from channel {}", statusPage.getChannelId());
                             }
                         }
@@ -156,6 +171,7 @@ public class StatusPageManager {
                     
                     // Remove the status page if we can't retrieve the message
                     activeStatusPages.remove(statusPage.getChannelId());
+                    saveStatusPagesToConfig();
                     logger.info("Removed unreachable status page from channel {}", statusPage.getChannelId());
                 }
             );
@@ -163,17 +179,90 @@ public class StatusPageManager {
     }
     
     /**
-     * Get the number of active status pages
-     */
-    public int getActiveStatusPageCount() {
-        return activeStatusPages.size();
-    }
-    
-    /**
      * Check if a channel has an active status page
      */
     public boolean hasStatusPage(String channelId) {
         return activeStatusPages.containsKey(channelId);
+    }
+    
+    /**
+     * Load status pages from config on startup
+     */
+    private void loadStatusPagesFromConfig() {
+        BotConfig.StatusPagesConfig statusPagesConfig = configManager.getConfig().getStatusPages();
+        if (statusPagesConfig == null || statusPagesConfig.getPages() == null) {
+            logger.info("No status pages to restore from config");
+            return;
+        }
+        
+        int restored = 0;
+        for (BotConfig.StatusPagesConfig.StatusPage configPage : statusPagesConfig.getPages()) {
+            try {
+                TextChannel channel = jda.getTextChannelById(configPage.getChannelId());
+                if (channel != null) {
+                    // Verify the message still exists
+                    channel.retrieveMessageById(configPage.getMessageId()).queue(
+                        message -> {
+                            StatusPage statusPage = new StatusPage(
+                                configPage.getChannelId(),
+                                configPage.getMessageId(),
+                                channel,
+                                configPage.getLastUpdated()
+                            );
+                            activeStatusPages.put(configPage.getChannelId(), statusPage);
+                            logger.info("Restored status page in channel {} with message ID {}", 
+                                       configPage.getChannelId(), configPage.getMessageId());
+                        },
+                        error -> {
+                            logger.warn("Failed to restore status page in channel {}: message may have been deleted", 
+                                       configPage.getChannelId());
+                        }
+                    );
+                    restored++;
+                } else {
+                    logger.warn("Failed to restore status page: channel {} not found", configPage.getChannelId());
+                }
+            } catch (Exception e) {
+                logger.error("Error restoring status page for channel {}", configPage.getChannelId(), e);
+            }
+        }
+        
+        logger.info("Attempted to restore {} status pages from config", restored);
+    }
+    
+    /**
+     * Save current status pages to config
+     */
+    private void saveStatusPagesToConfig() {
+        try {
+            List<BotConfig.StatusPagesConfig.StatusPage> configPages = new ArrayList<>();
+            
+            for (StatusPage statusPage : activeStatusPages.values()) {
+                BotConfig.StatusPagesConfig.StatusPage configPage = new BotConfig.StatusPagesConfig.StatusPage(
+                    statusPage.getChannelId(),
+                    statusPage.getMessageId(),
+                    statusPage.getChannel().getGuild().getId(),
+                    statusPage.getLastUpdated()
+                );
+                configPages.add(configPage);
+            }
+            
+            BotConfig.StatusPagesConfig statusPagesConfig = new BotConfig.StatusPagesConfig();
+            statusPagesConfig.setPages(configPages.toArray(new BotConfig.StatusPagesConfig.StatusPage[0]));
+            configManager.getConfig().setStatusPages(statusPagesConfig);
+            configManager.saveConfig();
+            
+            logger.debug("Saved {} status pages to config", configPages.size());
+        } catch (Exception e) {
+            logger.error("Failed to save status pages to config", e);
+        }
+    }
+    
+    /**
+     * Get the number of active status pages
+     */
+    public int getActiveStatusPageCount() {
+        return activeStatusPages.size();
     }
     
     /**

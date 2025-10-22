@@ -23,15 +23,14 @@ A Java 21 Discord bot that integrates with Minecraft servers via RCON to manage 
 - `/help` - Show comprehensive help information about all commands
 - `/ping` - Test bot responsiveness and latency
 
-### **Status Page Commands**
+### **Status Page Commands** (Require configured Discord roles)
 - `/status-page create` - Create a persistent status page that updates every 5 minutes
 - `/status-page remove` - Remove the persistent status page from the current channel
 
-### **Admin Commands** (Require configured Discord roles)
+### **Admin Commands** (Require `DISCORD_ADMIN_ROLE` or fallback to allowed roles)
 - `/admin whitelist-info` - View complete server whitelist with all players
 - `/admin whitelist-remove <username>` - Remove a specific player from the whitelist
 - `/admin console <command>` - Execute server console commands safely
-- `/admin performance` - View detailed server performance metrics and diagnostics
 
 ## Prerequisites
 
@@ -74,6 +73,7 @@ A Java 21 Discord bot that integrates with Minecraft servers via RCON to manage 
    # Optional settings
    DISCORD_GUILD_ID=your_discord_server_id
    DISCORD_ALLOWED_ROLES=Admin,Moderator
+   DISCORD_ADMIN_ROLE=Admin
    ```
 
 ### 3. Deploy with Docker Compose
@@ -108,7 +108,8 @@ https://discord.com/api/oauth2/authorize?client_id=YOUR_BOT_CLIENT_ID&permission
 |----------|----------|---------|-------------|
 | `DISCORD_TOKEN` | ✅ | - | Discord bot token |
 | `DISCORD_GUILD_ID` | ❌ | - | Discord server ID (for faster command updates) |
-| `DISCORD_ALLOWED_ROLES` | ❌ | - | Comma-separated list of roles allowed to use commands |
+| `DISCORD_ALLOWED_ROLES` | ❌ | - | Comma-separated list of roles allowed to use basic commands |
+| `DISCORD_ADMIN_ROLE` | ❌ | - | Specific role for admin commands (takes precedence over allowed roles) |
 | `MINECRAFT_RCON_HOST` | ❌ | `minecraft-server` | Minecraft server hostname |
 | `MINECRAFT_RCON_PORT` | ❌ | `25575` | RCON port |
 | `MINECRAFT_RCON_PASSWORD` | ✅ | - | RCON password |
@@ -126,7 +127,8 @@ Instead of environment variables, you can create a `config.json` file:
   "discord": {
     "token": "your_discord_bot_token",
     "guild_id": "your_guild_id",
-    "allowed_roles": ["Admin", "Moderator"]
+    "allowed_roles": ["Admin", "Moderator"],
+    "admin_role": "Admin"
   },
   "minecraft": {
     "host": "minecraft-server",
@@ -138,7 +140,8 @@ Instead of environment variables, you can create a `config.json` file:
     "whitelist_cooldown_minutes": 60,
     "max_username_length": 16,
     "enable_duplicate_check": true
-  }
+  },
+  "status_pages": []
 }
 ```
 
@@ -202,7 +205,7 @@ src/
 
 ## Status Page Feature
 
-The bot supports persistent status pages that automatically update every 5 minutes. These are perfect for server information channels where you want live server data without flooding the chat.
+The bot supports persistent status pages that automatically update every 5 minutes. These are perfect for server information channels where you want live server data without flooding the chat. **Status pages persist across bot restarts** and are automatically restored when the bot comes back online.
 
 ### Usage
 
@@ -213,6 +216,7 @@ The bot supports persistent status pages that automatically update every 5 minut
    - Creates a persistent status message in the current channel
    - Updates automatically every 5 minutes
    - Shows server status, player count, TPS, and online players
+   - **Persists across bot restarts** - automatically restored when bot reconnects
 
 2. **Remove a Status Page:**
    ```
@@ -226,6 +230,7 @@ The bot supports persistent status pages that automatically update every 5 minut
 - **Real-time Data**: Shows current server metrics including TPS and online players
 - **Color-coded Status**: Green (excellent), Yellow (moderate), Red (poor performance)
 - **Automatic Updates**: Refreshes every 5 minutes without user intervention
+- **Persistent Storage**: Status pages survive bot restarts and are automatically restored
 - **Error Handling**: Automatically removes status pages if messages are deleted
 - **Channel Management**: Only one status page per channel to prevent spam
 

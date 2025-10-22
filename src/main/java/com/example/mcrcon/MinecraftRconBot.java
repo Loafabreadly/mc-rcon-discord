@@ -73,7 +73,6 @@ public class MinecraftRconBot extends ListenerAdapter {
         whitelistCommand = new WhitelistCommand(rconService, config);
         adminCommand = new AdminCommand(rconService, config);
         utilityCommand = new UtilityCommand(rconService);
-        statusPageManager = new StatusPageManager(utilityCommand, scheduler);
         
         // Test RCON connection
         testRconConnection();
@@ -87,6 +86,9 @@ public class MinecraftRconBot extends ListenerAdapter {
         
         // Wait for JDA to be ready
         jda.awaitReady();
+        
+        // Initialize status page manager after JDA is ready
+        statusPageManager = new StatusPageManager(utilityCommand, scheduler, configManager, jda);
         
         // Register shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));

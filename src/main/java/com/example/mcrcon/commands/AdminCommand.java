@@ -149,10 +149,18 @@ public class AdminCommand {
     private boolean hasAdminPermission(Member member) {
         if (member == null) return false;
         
-        // If no roles are configured, allow everyone
+        // Check for specific admin role first
+        String adminRole = config.getDiscord().getAdminRole();
+        if (adminRole != null && !adminRole.isEmpty()) {
+            return member.getRoles().stream()
+                    .map(Role::getName)
+                    .anyMatch(roleName -> roleName.equalsIgnoreCase(adminRole));
+        }
+        
+        // Fallback to allowed roles if no admin role is configured
         String[] allowedRoles = config.getDiscord().getAllowedRoles();
         if (allowedRoles == null || allowedRoles.length == 0) {
-            return true;
+            return true; // If no roles configured, allow everyone
         }
         
         // Check if user has any of the allowed roles
