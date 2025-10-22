@@ -14,6 +14,7 @@ services:
       - DISCORD_TOKEN=
       - DISCORD_GUILD_ID=
       - DISCORD_ALLOWED_ROLES=Minecrafter
+      - DISCORD_ADMIN_ROLE=Admin
       
       # Minecraft RCON Configuration
       - MINECRAFT_RCON_HOST=
