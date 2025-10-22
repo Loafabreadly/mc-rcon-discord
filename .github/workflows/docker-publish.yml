@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: docker.io
-  IMAGE_NAME: minecraft-rcon-discord-bot
+  IMAGE_NAME: mc-rcon-discord
 
 jobs:
   build:
@@ -31,18 +31,39 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
+    - name: Generate automatic version
+      id: version
+      run: |
+        # Generate date-based version with build number
+        DATE=$(date +'%Y.%m.%d')
+        BUILD_NUMBER=${{ github.run_number }}
+        SHORT_SHA=$(git rev-parse --short HEAD)
+        
+        # Create version string: YYYY.MM.DD.BUILD_NUMBER
+        VERSION="${DATE}.${BUILD_NUMBER}"
+        VERSION_WITH_SHA="${VERSION}-${SHORT_SHA}"
+        
+        echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        echo "version_with_sha=${VERSION_WITH_SHA}" >> $GITHUB_OUTPUT
+        echo "date=${DATE}" >> $GITHUB_OUTPUT
+        echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+        echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+        
+        echo "Generated version: ${VERSION}"
+        echo "Generated version with SHA: ${VERSION_WITH_SHA}"
+
     - name: Extract metadata
       id: meta
       uses: docker/metadata-action@v5
       with:
         images: ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}
         tags: |
+          type=raw,value=${{ steps.version.outputs.version }}
+          type=raw,value=${{ steps.version.outputs.version_with_sha }}
+          type=raw,value=${{ steps.version.outputs.date }}
+          type=raw,value=latest
           type=ref,event=branch
-          type=ref,event=pr
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
-          type=semver,pattern={{major}}
-          type=raw,value=latest,enable={{is_default_branch}}
+          type=raw,value=build-${{ steps.version.outputs.build_number }}
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
