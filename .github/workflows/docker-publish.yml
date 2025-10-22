@@ -12,6 +12,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: Docker Workflow
     permissions:
       contents: read
       packages: write
