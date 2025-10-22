@@ -163,8 +163,7 @@ public class UtilityCommand {
                 .addField("**🔧 Admin Commands**", 
                         "`/admin whitelist-info` - View complete whitelist\n" +
                         "`/admin whitelist-remove <username>` - Remove player from whitelist\n" +
-                        "`/admin console <command>` - Execute server console command\n" +
-                        "`/admin performance` - Detailed server performance metrics", false)
+                        "`/admin console <command>` - Execute server console command", false)
                 .addField("**🛡️ Permissions**", 
                         "Admin commands require special Discord roles as configured by the server administrators.", false)
                 .setTimestamp(Instant.now())

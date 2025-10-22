@@ -73,7 +73,6 @@ public class MinecraftRconBot extends ListenerAdapter {
         whitelistCommand = new WhitelistCommand(rconService, config);
         adminCommand = new AdminCommand(rconService, config);
         utilityCommand = new UtilityCommand(rconService);
-        statusPageManager = new StatusPageManager(utilityCommand, scheduler);
         
         // Test RCON connection
         testRconConnection();
@@ -87,6 +86,9 @@ public class MinecraftRconBot extends ListenerAdapter {
         
         // Wait for JDA to be ready
         jda.awaitReady();
+        
+        // Initialize status page manager after JDA is ready
+        statusPageManager = new StatusPageManager(utilityCommand, scheduler, configManager, jda);
         
         // Register shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
@@ -142,7 +144,6 @@ public class MinecraftRconBot extends ListenerAdapter {
             case "whitelist-info" -> adminCommand.handleWhitelistInfoCommand(event);
             case "whitelist-remove" -> adminCommand.handleWhitelistRemoveCommand(event);
             case "console" -> adminCommand.handleConsoleCommand(event);
-            case "performance" -> adminCommand.handlePerformanceCommand(event);
             default -> event.reply("Unknown admin command!").setEphemeral(true).queue();
         }
     }
@@ -195,8 +196,7 @@ public class MinecraftRconBot extends ListenerAdapter {
                                         new SubcommandData("whitelist-remove", "Remove player from whitelist")
                                                 .addOption(OptionType.STRING, "username", "Username to remove", true),
                                         new SubcommandData("console", "Execute console command")
-                                                .addOption(OptionType.STRING, "command", "Command to execute", true),
-                                        new SubcommandData("performance", "View server performance metrics")
+                                                .addOption(OptionType.STRING, "command", "Command to execute", true)
                                 )
                 ).queue(
                         commands -> logger.info("Successfully registered {} guild commands", commands.size()),
@@ -222,8 +222,7 @@ public class MinecraftRconBot extends ListenerAdapter {
                                         new SubcommandData("whitelist-remove", "Remove player from whitelist")
                                                 .addOption(OptionType.STRING, "username", "Username to remove", true),
                                         new SubcommandData("console", "Execute console command")
-                                                .addOption(OptionType.STRING, "command", "Command to execute", true),
-                                        new SubcommandData("performance", "View server performance metrics")
+                                                .addOption(OptionType.STRING, "command", "Command to execute", true)
                                 )
                 ).queue(
                         commands -> logger.info("Successfully registered {} global commands", commands.size()),

@@ -142,91 +142,25 @@ public class AdminCommand {
                        command, event.getUser().getId());
         });
     }
-    
-    /**
-     * Handle server performance command
-     */
-    public void handlePerformanceCommand(SlashCommandInteractionEvent event) {
-        if (!hasAdminPermission(event.getMember())) {
-            event.reply("❌ You don't have permission to use this command.").setEphemeral(true).queue();
-            return;
-        }
-        
-        event.deferReply().queue();
-        
-        rconService.getPerformanceInfo().whenComplete((performanceInfo, throwable) -> {
-            if (throwable != null) {
-                logger.error("Error getting performance info", throwable);
-                
-                EmbedBuilder errorEmbed = new EmbedBuilder()
-                        .setTitle("❌ Server Performance")
-                        .setDescription("Failed to retrieve performance information from the server.")
-                        .setColor(Color.RED)
-                        .setTimestamp(Instant.now())
-                        .setFooter("Minecraft RCON Bot");
-                
-                event.getHook().editOriginalEmbeds(errorEmbed.build()).queue();
-                return;
-            }
-            
-            // Determine color based on server performance
-            Color statusColor;
-            if (performanceInfo.getTps() >= 19.0) {
-                statusColor = Color.GREEN;
-            } else if (performanceInfo.getTps() >= 15.0) {
-                statusColor = Color.YELLOW;
-            } else {
-                statusColor = Color.RED;
-            }
-            
-            EmbedBuilder embed = new EmbedBuilder()
-                    .setTitle("📊 Server Performance")
-                    .setColor(statusColor)
-                    .addField("📊 Players Online", 
-                            String.format("%d/%d", performanceInfo.getOnlinePlayers(), performanceInfo.getMaxPlayers()), 
-                            true)
-                    .addField("⚡ Server TPS", String.format("%.2f", performanceInfo.getTps()), true)
-                    .addField("🎮 Server Load", getLoadDescription(performanceInfo.getTps()), true)
-                    .setTimestamp(Instant.now())
-                    .setFooter("Minecraft RCON Bot");
-            
-            // Add TPS details if available
-            if (performanceInfo.isTpsCommandAvailable()) {
-                embed.addField("🔍 TPS Details", "```" + performanceInfo.getTpsDetails() + "```", false);
-            } else {
-                embed.addField("🔍 TPS Details", "⚠️ TPS command not available on this server", false);
-            }
-            
-            // Add memory/GC info if available
-            if (performanceInfo.isGcCommandAvailable()) {
-                embed.addField("💾 Memory Information", "```" + performanceInfo.getMemoryInfo() + "```", false);
-            } else {
-                embed.addField("💾 Memory Information", "⚠️ GC command not available on this server", false);
-            }
-            
-            // Add online players if any
-            if (performanceInfo.getPlayerList().length > 0) {
-                String playerList = String.join(", ", performanceInfo.getPlayerList());
-                if (playerList.length() > 1000) {
-                    playerList = playerList.substring(0, 997) + "...";
-                }
-                embed.addField("👥 Online Players", playerList, false);
-            }
-            
-            event.getHook().editOriginalEmbeds(embed.build()).queue();
-        });
-    }
-    
+
     /**
      * Check if user has admin permissions
      */
     private boolean hasAdminPermission(Member member) {
         if (member == null) return false;
         
-        // If no roles are configured, allow everyone
+        // Check for specific admin role first
+        String adminRole = config.getDiscord().getAdminRole();
+        if (adminRole != null && !adminRole.isEmpty()) {
+            return member.getRoles().stream()
+                    .map(Role::getName)
+                    .anyMatch(roleName -> roleName.equalsIgnoreCase(adminRole));
+        }
+        
+        // Fallback to allowed roles if no admin role is configured
         String[] allowedRoles = config.getDiscord().getAllowedRoles();
         if (allowedRoles == null || allowedRoles.length == 0) {
-            return true;
+            return true; // If no roles configured, allow everyone
         }
         
         // Check if user has any of the allowed roles
@@ -256,22 +190,5 @@ public class AdminCommand {
         }
         
         return false;
-    }
-    
-    /**
-     * Get a user-friendly description of server load based on TPS
-     */
-    private String getLoadDescription(double tps) {
-        if (tps >= 19.5) {
-            return "Excellent";
-        } else if (tps >= 18.0) {
-            return "Good";
-        } else if (tps >= 15.0) {
-            return "Moderate";
-        } else if (tps >= 10.0) {
-            return "Heavy";
-        } else {
-            return "Critical";
-        }
     }
 }
