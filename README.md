@@ -55,7 +55,7 @@ A Java 21 Discord bot that integrates with Minecraft servers via RCON to manage 
 
 1. Clone this repository:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Loafabreadly/mc-rcon-discord.git
    cd mc-rcon-discord
    ```
 
@@ -174,7 +174,7 @@ The included `docker-compose.yml` sets up a complete Minecraft server with RCON 
 
 ```bash
 # Clone repository
-git clone <repository-url>
+git clone https://github.com/Loafabreadly/mc-rcon-discord.git
 cd mc-rcon-discord
 
 # Build with Maven
