@@ -1,8 +1,8 @@
 # Minecraft RCON Discord Bot
 
-![Docker Pulls](https://img.shields.io/docker/pulls/yourusername/minecraft-rcon-discord-bot)
-![Docker Image Size](https://img.shields.io/docker/image-size/yourusername/minecraft-rcon-discord-bot/latest)
-![GitHub License](https://img.shields.io/github/license/yourusername/minecraft-rcon-discord-bot)
+![Docker Pulls](https://img.shields.io/docker/pulls/loafabreadly/mc-rcon-discord)
+![Docker Image Size](https://img.shields.io/docker/image-size/loafabreadly/mc-rcon-discord/latest)
+![GitHub License](https://img.shields.io/github/license/loafabreadly/mc-rcon-discord)
 
 A comprehensive Discord bot for managing Minecraft servers via RCON, built with Java 21 and designed for Docker deployment.
 
