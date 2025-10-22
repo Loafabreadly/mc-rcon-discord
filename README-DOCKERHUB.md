@@ -114,7 +114,7 @@ docker run -d \
   -e MINECRAFT_RCON_HOST=your_server \
   -e MINECRAFT_RCON_PASSWORD=your_password \
   -v ./logs:/app/logs \
-  yourusername/minecraft-rcon-discord-bot:latest
+  loafabreadly/mc-rcon-discord:latest
 ```
 
 ## ⚙️ Configuration
@@ -232,7 +232,7 @@ services:
     # ... your existing minecraft config
     
   mc-rcon-bot:
-    image: yourusername/minecraft-rcon-discord-bot:latest
+    image: loafabreadly/mc-rcon-discord:latest
     depends_on:
       - minecraft
     environment:
@@ -264,7 +264,7 @@ spec:
     spec:
       containers:
       - name: bot
-        image: yourusername/minecraft-rcon-discord-bot:latest
+        image: loafabreadly/mc-rcon-discord:latest
         env:
         - name: DISCORD_TOKEN
           valueFrom:
@@ -279,8 +279,8 @@ spec:
 ### Building from Source
 
 ```bash
-git clone https://github.com/yourusername/minecraft-rcon-discord-bot.git
-cd minecraft-rcon-discord-bot
+git clone https://github.com/Loafabreadly/mc-rcon-discord.git
+cd mc-rcon-discord
 ./build.sh
 ```
 
@@ -294,13 +294,13 @@ cd minecraft-rcon-discord-bot
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/Loafabreadly/mc-rcon-discord/blob/main/LICENSE) file for details.
 
 ## 🤝 Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/minecraft-rcon-discord-bot/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/minecraft-rcon-discord-bot/discussions)
-- **Documentation**: [Wiki](https://github.com/yourusername/minecraft-rcon-discord-bot/wiki)
+- **Issues**: [GitHub Issues](https://github.com/Loafabreadly/mc-rcon-discord/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Loafabreadly/mc-rcon-discord/discussions)
+- **Documentation**: [Full README](https://github.com/Loafabreadly/mc-rcon-discord/blob/main/README.md)
 
 ## 🌟 Acknowledgments
 
