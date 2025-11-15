@@ -66,6 +66,9 @@ public class BotConfig {
         
         @JsonProperty("enable_duplicate_check")
         private boolean enableDuplicateCheck = true;
+        
+        @JsonProperty("status_page_update_interval_min")
+        private int statusPageUpdateIntervalMin = 5;
     }
     
     @Data
