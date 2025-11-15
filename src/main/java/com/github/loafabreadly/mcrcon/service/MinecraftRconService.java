@@ -238,12 +238,19 @@ public class MinecraftRconService {
             }
         }
         
-        // Parse server version from key-value format (name = 1.21.10)
+        // Parse server version from RCON version response
         String serverVersion = "Unknown";
         if (versionResponse != null && !versionResponse.contains("Unknown command")) {
+            // Try pattern: "Minecraft 1.21.10data = ..." or "name = 1.21.10"
+            Pattern minecraftPattern = Pattern.compile("Minecraft\\s+([0-9.]+)");
             Pattern namePattern = Pattern.compile("name\\s*=\\s*([^\\n\\r]+)");
+            
+            Matcher minecraftMatcher = minecraftPattern.matcher(versionResponse);
             Matcher nameMatcher = namePattern.matcher(versionResponse);
-            if (nameMatcher.find()) {
+            
+            if (minecraftMatcher.find()) {
+                serverVersion = minecraftMatcher.group(1).trim();
+            } else if (nameMatcher.find()) {
                 serverVersion = nameMatcher.group(1).trim();
             }
         }
