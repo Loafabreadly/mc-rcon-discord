@@ -1,5 +1,6 @@
 package com.github.loafabreadly.mcrcon.commands;
 
+import com.github.loafabreadly.mcrcon.config.ConfigManager;
 import com.github.loafabreadly.mcrcon.service.MinecraftRconService;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -19,9 +20,11 @@ public class UtilityCommand {
     private static final Logger logger = LoggerFactory.getLogger(UtilityCommand.class);
     
     private final MinecraftRconService rconService;
+    private final ConfigManager configManager;
     
-    public UtilityCommand(MinecraftRconService rconService) {
+    public UtilityCommand(MinecraftRconService rconService, ConfigManager configManager) {
         this.rconService = rconService;
+        this.configManager = configManager;
     }
     
     /**
@@ -146,18 +149,21 @@ public class UtilityCommand {
      * Handle help command
      */
     public void handleHelpCommand(SlashCommandInteractionEvent event) {
+        int updateInterval = configManager.getConfig().getBot().getStatusPageUpdateIntervalMin();
+        
         EmbedBuilder embed = new EmbedBuilder()
-                .setTitle("🤖 Minecraft RCON Bot - Help")
-                .setDescription("Available commands for managing your Minecraft server via Discord")
-                .setColor(Color.CYAN)
-                .addField("**📝 Whitelist Commands**", 
-                        "`/whitelist <username>` - Request to add yourself to the server whitelist", false)
+                .setTitle("📖 Minecraft RCON Discord Bot - Help")
+                .setDescription("This bot provides Discord integration with your Minecraft server via RCON.")
+                .setColor(new Color(88, 101, 242))
+                .addField("**� Whitelist Commands**", 
+                        "`/whitelist-add <username>` - Request to add yourself to the server whitelist\n" +
+                        "`/whitelist-check <username>` - Check if a player is whitelisted", false)
                 .addField("**📊 Server Commands**", 
                         "`/server-status` - Check server status and performance\n" +
                         "`/players` - View online players list\n" +
                         "`/ping` - Test bot responsiveness", false)
                 .addField("**📺 Status Pages**", 
-                        "`/status-page create` - Create a persistent status page that updates every 5 minutes\n" +
+                        "`/status-page create` - Create a persistent status page that updates every " + updateInterval + " minutes\n" +
                         "`/status-page remove` - Remove the status page from this channel", false)
                 .addField("**ℹ️ Information**", 
                         "`/help` - Show this help message", false)

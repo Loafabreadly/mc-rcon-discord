@@ -72,7 +72,7 @@ public class MinecraftRconBot extends ListenerAdapter {
         rconService = new MinecraftRconService(config.getMinecraft());
         whitelistCommand = new WhitelistCommand(rconService, config);
         adminCommand = new AdminCommand(rconService, config);
-        utilityCommand = new UtilityCommand(rconService);
+        utilityCommand = new UtilityCommand(rconService, configManager);
         
         // Test RCON connection
         testRconConnection();
@@ -170,6 +170,9 @@ public class MinecraftRconBot extends ListenerAdapter {
      */
     private void registerSlashCommands() {
         try {
+            int updateInterval = config.getBot().getStatusPageUpdateIntervalMin();
+            String statusPageDescription = "Create a persistent status page that updates every " + updateInterval + " minutes";
+            
             // Get guild for command registration
             Guild guild = null;
             if (config.getDiscord().getGuildId() != null) {
@@ -187,7 +190,7 @@ public class MinecraftRconBot extends ListenerAdapter {
                         Commands.slash("ping", "Test bot responsiveness"),
                         Commands.slash("status-page", "Manage persistent status pages")
                                 .addSubcommands(
-                                        new SubcommandData("create", "Create a persistent status page that updates every 5 minutes"),
+                                        new SubcommandData("create", statusPageDescription),
                                         new SubcommandData("remove", "Remove the persistent status page from this channel")
                                 ),
                         Commands.slash("admin", "Admin commands")
@@ -213,7 +216,7 @@ public class MinecraftRconBot extends ListenerAdapter {
                         Commands.slash("ping", "Test bot responsiveness"),
                         Commands.slash("status-page", "Manage persistent status pages")
                                 .addSubcommands(
-                                        new SubcommandData("create", "Create a persistent status page that updates every 5 minutes"),
+                                        new SubcommandData("create", statusPageDescription),
                                         new SubcommandData("remove", "Remove the persistent status page from this channel")
                                 ),
                         Commands.slash("admin", "Admin commands")

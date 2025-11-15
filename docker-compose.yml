@@ -28,6 +28,7 @@ services:
       - BOT_ENABLE_DUPLICATE_CHECK=true
       
       # Status Page Configuration (Optional)
+      - STATUS_PAGE_UPDATE_INTERVAL_MIN=5
       - STATUS_PAGE_CHANNEL_ID=
       - STATUS_PAGE_MESSAGE_ID=
 

@@ -86,6 +86,7 @@ public class ConfigManager {
         botSettings.setWhitelistCooldownMinutes(Integer.parseInt(getEnvVar("BOT_COOLDOWN_MINUTES", "60")));
         botSettings.setMaxUsernameLength(Integer.parseInt(getEnvVar("BOT_MAX_USERNAME_LENGTH", "16")));
         botSettings.setEnableDuplicateCheck(Boolean.parseBoolean(getEnvVar("BOT_ENABLE_DUPLICATE_CHECK", "true")));
+        botSettings.setStatusPageUpdateIntervalMin(Integer.parseInt(getEnvVar("STATUS_PAGE_UPDATE_INTERVAL_MIN", "5")));
         config.setBot(botSettings);
         
         // Status pages configuration (initialize empty)

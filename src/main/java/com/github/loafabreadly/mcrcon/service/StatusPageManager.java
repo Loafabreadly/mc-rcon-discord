@@ -110,15 +110,17 @@ public class StatusPageManager {
      * Start the periodic update task
      */
     private void startPeriodicUpdates() {
+        int updateInterval = configManager.getConfig().getBot().getStatusPageUpdateIntervalMin();
+        
         scheduler.scheduleAtFixedRate(() -> {
             try {
                 updateAllStatusPages();
             } catch (Exception e) {
                 logger.error("Error during periodic status page updates", e);
             }
-        }, 5, 5, TimeUnit.MINUTES);
+        }, updateInterval, updateInterval, TimeUnit.MINUTES);
         
-        logger.info("Started periodic status page updates (every 5 minutes)");
+        logger.info("Started periodic status page updates (every {} minutes)", updateInterval);
     }
     
     /**
